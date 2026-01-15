@@ -7,7 +7,9 @@ import {
     deleteProduct, 
     addInventory, 
     addImage,
-    deleteImage
+    deleteImage,
+    getDeletedProducts, // <--- Importar
+    restoreProduct      // <--- Importar
 } from "../controllers/products.js";
 
 const router = Router();
@@ -20,5 +22,7 @@ router.delete('/products/:id', deleteProduct);
 router.post('/products/inventory', addInventory);
 router.post('/products/:id/images', addImage);
 router.delete('/images/:id', deleteImage);
+router.get('/products/deleted', getDeletedProducts);
+router.put('/products/restore/:id', restoreProduct);
 
 export default router;

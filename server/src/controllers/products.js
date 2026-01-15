@@ -103,6 +103,7 @@ export const addInventory = async (req, res) => {
     let pool;
     try {
         pool = await connectionSQL();
+        
         await pool.request()
             .input('producto_id', SQL.Int, producto_id)
             .input('talla_id', SQL.Int, talla_id)
@@ -111,8 +112,19 @@ export const addInventory = async (req, res) => {
             .input('id_usuario', SQL.Int, id_usuario)
             .execute(procedures.addInventory);
         
-        res.status(201).json({ msg: "Stock actualizado con éxito." });
+        const result = await pool.request()
+            .input('product_id', SQL.Int, producto_id)
+            .execute(procedures.getProductDetails);
+
+        const updatedInventory = result.recordsets[2]; 
+
+        res.status(201).json({ 
+            msg: "Stock actualizado con éxito.", 
+            inventario: updatedInventory 
+        });
+
     } catch (error) {
+        console.error("Error en addInventory:", error);
         res.status(500).json({ msg: "Error al añadir inventario", error: error.message });
     } finally {
         if (pool) pool.close();
@@ -143,17 +155,56 @@ export const addImage = async (req, res) => {
     }
 };
 
+// --- MODIFICADO: Soft Delete (Papelera) ---
 export const deleteProduct = async (req, res) => {
     const { id } = req.params;
     let pool;
     try {
         pool = await connectionSQL();
-        await pool.request().input('id', SQL.Int, id).execute(procedures.deleteProduct);
-        res.status(200).json({ msg: "Producto eliminado correctamente." });
+        await pool.request()
+            .input('id', SQL.Int, id)
+            // Llamamos al SP que ahora hace UPDATE activo=0
+            .execute(procedures.deleteProduct); 
+            
+        res.status(200).json({ msg: "Producto movido a la papelera correctamente." });
     } catch (error) { 
+        console.error("Error eliminando producto:", error.message);
         res.status(500).json({ msg: "Error al eliminar el producto", error: error.message });
     } finally { 
         if (pool) pool.close(); 
+    }
+};
+
+// --- NUEVO: Obtener productos en papelera ---
+export const getDeletedProducts = async (req, res) => {
+    let pool;
+    try {
+        pool = await connectionSQL();
+        // Usamos el string directo por si no lo tienes en tu objeto procedures
+        const result = await pool.request().execute('sp_GetDeletedProducts');
+        res.status(200).json(result.recordset);
+    } catch (error) {
+        res.status(500).json({ msg: "Error al obtener la papelera", error: error.message });
+    } finally {
+        if (pool) pool.close();
+    }
+};
+
+// --- NUEVO: Restaurar producto ---
+export const restoreProduct = async (req, res) => {
+    const { id } = req.params;
+    let pool;
+    try {
+        pool = await connectionSQL();
+        // Usamos el string directo por si no lo tienes en tu objeto procedures
+        await pool.request()
+            .input('id', SQL.Int, id)
+            .execute('sp_RestoreProduct');
+        res.status(200).json({ msg: "Producto restaurado correctamente." });
+    } catch (error) {
+        res.status(500).json({ msg: "Error al restaurar el producto", error: error.message });
+    } finally {
+        if (pool) pool.close();
     }
 };
 

@@ -11,13 +11,18 @@ export const procedures = {
     addInventory: 'dbo.sp_AddInventory',
     insertImage: 'dbo.sp_InsertImage',
     deleteImage: 'dbo.sp_DeleteImage',
-    // Atributos
+    
+    // Atributos (CORRECCIÓN: Añadidos DELETE)
     getCategories: 'dbo.sp_GetCategorias',
     insertCategory: 'dbo.sp_InsertCategory',
+    deleteCategory: 'dbo.sp_DeleteCategory', // Nuevo
     getSizes: 'dbo.sp_GetTallas',
     insertSize: 'dbo.sp_InsertTalla',
+    deleteSize: 'dbo.sp_DeleteTalla', // Nuevo
     getColors: 'dbo.sp_GetColores',
     insertColor: 'dbo.sp_InsertColor',
+    deleteColor: 'dbo.sp_DeleteColor', // Nuevo
+
     // Ventas y Compras
     createInvoice: 'dbo.sp_CrearFactura',
     getAllRecords: 'dbo.sp_GetAllRecords',

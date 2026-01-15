@@ -1,9 +1,21 @@
+// public\src\components\CategoryManager.jsx
+
 import { useState, useEffect } from 'react';
-import { getCategories, createCategory, getSizes, createSize, getColors, createColor } from '../api/apiService';
+import { 
+    getCategories, 
+    createCategory, 
+    getSizes, 
+    createSize, 
+    getColors, 
+    createColor,
+    deleteCategory, // Nivel de Importación: Correcto
+    deleteSize,     // Nivel de Importación: Correcto
+    deleteColor     // Nivel de Importación: Correcto
+} from '../api/apiService';
 import Input from './input';
 import Button from './button';
 
-const AttributeSection = ({ title, items, inputValue, onInputChange, onFormSubmit, placeholder, error, type }) => (
+const AttributeSection = ({ title, items, inputValue, onInputChange, onFormSubmit, onDelete, placeholder, error, type }) => (
     <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
         <h3 className="text-xl font-bold mb-4 text-gray-800">{title}</h3>
         
@@ -26,7 +38,16 @@ const AttributeSection = ({ title, items, inputValue, onInputChange, onFormSubmi
             {items.length > 0 ? (
                 <ul className="divide-y divide-gray-200">
                     {items.map(item => (
-                        <li key={item.id} className="p-3 text-gray-700">{item.nombre}</li>
+                        <li key={item.id} className="p-3 text-gray-700 flex justify-between items-center">
+                            <span>{item.nombre}</span>
+                            {/* BOTÓN DE ELIMINACIÓN */}
+                            <button 
+                                onClick={() => onDelete(item.id, item.nombre, type.toLowerCase())}
+                                className="text-red-500 hover:text-red-700 font-semibold text-sm transition-colors"
+                            >
+                                Eliminar
+                            </button>
+                        </li>
                     ))}
                 </ul>
             ) : (
@@ -37,6 +58,7 @@ const AttributeSection = ({ title, items, inputValue, onInputChange, onFormSubmi
 );
 
 const CategoryManager = () => {
+    // Declaración de estados, sintaxis revisada: OK
     const [categories, setCategories] = useState([]);
     const [sizes, setSizes] = useState([]);
     const [colors, setColors] = useState([]);
@@ -97,10 +119,52 @@ const CategoryManager = () => {
             resetInput();
             await fetchAttributes();
         } catch (err) {
+            // Manejo de error de duplicado (ej. código 500 del servidor)
             setError(p => ({ ...p, [type]: `Error al crear. Puede que ya exista.` }));
             console.error(err);
         }
     };
+
+    // FUNCIÓN DE ELIMINACIÓN
+    const handleDelete = async (id, nombre, type) => {
+        if (!window.confirm(`¿Está seguro de que desea eliminar ${type} "${nombre}"? Esta acción no se puede deshacer si está en uso.`)) {
+            return;
+        }
+
+        setMessage({ type: '', text: '' });
+        setError({ category: '', size: '', color: '' });
+
+        let deletePromise;
+        let errorKey;
+
+        switch (type) {
+            case 'categoría':
+                deletePromise = deleteCategory(id);
+                errorKey = 'category';
+                break;
+            case 'talla':
+                deletePromise = deleteSize(id);
+                errorKey = 'size';
+                break;
+            case 'color':
+                deletePromise = deleteColor(id);
+                errorKey = 'color';
+                break;
+            default: return;
+        }
+
+        try {
+            await deletePromise;
+            setMessage({ type: 'success', text: `${type} "${nombre}" eliminado con éxito.` });
+            await fetchAttributes();
+        } catch (err) {
+            // Manejo de error de clave foránea (409 Conflict)
+            const errorMessage = err.response?.data?.msg || `Error al eliminar ${type}. Verifique si está en uso por un producto.`;
+            setError(p => ({ ...p, [errorKey]: errorMessage }));
+            console.error(err);
+        }
+    };
+
 
     return (
         <div className="container mx-auto p-4 md:p-6">
@@ -119,16 +183,19 @@ const CategoryManager = () => {
                     inputValue={newCategory}
                     onInputChange={setNewCategory}
                     onFormSubmit={(e) => handleCreate(e, 'category')}
+                    onDelete={handleDelete} // Pasa la función de eliminación
                     placeholder="Ej: Camisetas"
                     error={error.category}
                     type="Categoría"
                 />
+                
                 <AttributeSection
                     title="Tallas"
                     items={sizes}
                     inputValue={newSize}
                     onInputChange={setNewSize}
                     onFormSubmit={(e) => handleCreate(e, 'size')}
+                    onDelete={handleDelete} // Pasa la función de eliminación
                     placeholder="Ej: M, L, XL"
                     error={error.size}
                     type="Talla"
@@ -139,6 +206,7 @@ const CategoryManager = () => {
                     inputValue={newColor}
                     onInputChange={setNewColor}
                     onFormSubmit={(e) => handleCreate(e, 'color')}
+                    onDelete={handleDelete} // Pasa la función de eliminación
                     placeholder="Ej: Rojo, Azul"
                     error={error.color}
                     type="Color"

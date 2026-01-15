@@ -85,33 +85,57 @@ const Login = ({ handle }) => {
     };
 
     return (
-        <main className="h-screen w-full flex items-center justify-center bg-gradient-to-r from-purple-500 to-violet-700 p-4 sm:p-6 lg:p-8">
-            <div className='w-full max-w-lg'>
-                <Form className="bg-white/95 text-black backdrop-blur-sm" event={isCreateAcount ? handleSignup : handleLogin}>
-                    <div className='text-center mb-8'>
-                        <img className="mx-auto rounded-full w-24 h-24 border-4 border-violet-300 shadow-lg" src={logoEmpresa} alt="Logo de la empresa" />
-                        <h1 className="font-sans text-3xl font-bold text-center mt-4 md:text-4xl">{isCreateAcount ? "Crear Nueva Cuenta" : "Bienvenido de Nuevo"}</h1>
-                        <p className="text-gray-600 mt-2">{isCreateAcount ? "Completa los datos para registrarte." : "Ingresa tus credenciales para continuar."}</p>
+        // min-h-screen asegura que cubra todo el alto del celular.
+        // py-8 agrega espacio arriba y abajo para que no se pegue a los bordes en pantallas bajitas.
+        <main className="min-h-screen w-full flex items-center justify-center bg-gradient-to-r from-purple-600 to-violet-800 p-4 py-8">
+            <div className='w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden'>
+                <Form className="w-full p-6 md:p-8" event={isCreateAcount ? handleSignup : handleLogin}>
+                    <div className='text-center mb-6'>
+                        <div className="mx-auto w-20 h-20 mb-4 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-violet-50">
+                            <img className="w-16 h-16 rounded-full object-cover" src={logoEmpresa} alt="Logo" />
+                        </div>
+                        
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                            {isCreateAcount ? "Crear Nueva Cuenta" : "Bienvenido de Nuevo"}
+                        </h1>
+                        <p className="text-gray-500 text-sm px-2">
+                            {isCreateAcount ? "Completa los datos para registrarte." : "Ingresa tus credenciales para continuar."}
+                        </p>
                     </div>
 
-                    <div className="space-y-4">
+                    {/* space-y-6 aumenta la separación vertical para mejorar el 'largo' y la experiencia táctil */}
+                    <div className="space-y-6">
                         <Input title="Nombre de Usuario" placeholder="tu-usuario" value={usuario} event={setUsuario} />
+                        
                         {isCreateAcount && <Input title="Apellido" placeholder="tu-apellido" value={apellido} event={setApellido} />}
-                        <Input title="Contraseña" placeholder="••••••••" type="password" value={clave} event={setClave} />
+                        
+                        <Input title="Contraseña" placeholder="........" type="password" value={clave} event={setClave} />
                     </div>
                     
-                    {errorMensaje && <p className="text-red-600 text-sm mt-4 text-center font-semibold bg-red-100 p-3 rounded-md border border-red-200">{errorMensaje}</p>}
+                    {errorMensaje && (
+                        <div className="mt-6 p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-lg text-center font-medium">
+                            {errorMensaje}
+                        </div>
+                    )}
                     
-                    <div className='mt-6'>
-                      <Button className="w-full text-lg" title={loading ? "Procesando..." : (isCreateAcount ? "Crear Cuenta" : "Iniciar Sesión")} disabled={loading} />
+                    <div className='mt-8'>
+                        <Button 
+                            className="w-full text-lg font-bold shadow-lg py-3 transition-transform active:scale-95" 
+                            title={loading ? "Procesando..." : (isCreateAcount ? "Crear Cuenta" : "Iniciar Sesión")} 
+                            disabled={loading} 
+                        />
                     </div>
 
-                    <p className='mt-8 text-center text-sm'>
-                        {isCreateAcount ? "¿Ya tienes cuenta? " : "¿No tienes cuenta? "} 
-                        <button type="button" className='font-semibold cursor-pointer underline text-violet-700 hover:text-purple-700 bg-transparent border-none p-0' onClick={() => {setIsCreateAcount(!isCreateAcount); setErrorMensaje('')}}>
+                    <div className="mt-6 text-center text-sm text-gray-600 pb-2">
+                        {isCreateAcount ? "¿Ya tienes cuenta? " : "¿No tienes cuenta? "}
+                        <button 
+                            type="button" 
+                            className="font-bold text-violet-700 hover:text-violet-900 underline decoration-2 underline-offset-2 transition-colors ml-1"
+                            onClick={() => {setIsCreateAcount(!isCreateAcount); setErrorMensaje('')}}
+                        >
                             {isCreateAcount ? "Iniciar Sesión" : "Crear Cuenta"}
                         </button>
-                    </p>
+                    </div>
                 </Form>
             </div>
         </main>

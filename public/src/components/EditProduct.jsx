@@ -110,27 +110,47 @@ const EditProduct = () => {
         }
     };
 
+
     const handleAddStock = async (e) => {
         e.preventDefault();
-        setMessage(''); setError('');
+        setMessage('');
+        setError('');
+        
         if (!stockTallaId || !stockColorId || stockCantidad <= 0) {
             setError("Debe seleccionar talla, color y una cantidad válida.");
             return;
         }
+
         const stockData = {
-            producto_id: id,
+            producto_id: parseInt(id), // Asegurar que sea entero
             talla_id: parseInt(stockTallaId),
             color_id: parseInt(stockColorId),
             cantidad: parseInt(stockCantidad),
             id_usuario: user.id
         };
+
         try {
-            await addInventory(stockData);
+            const res = await addInventory(stockData);
+            
             setMessage("Stock actualizado con éxito.");
-            setStockTallaId(''); setStockColorId(''); setStockCantidad(1);
-            await fetchData();
+            
+            // ACTUALIZACIÓN INMEDIATA DE LA TABLA
+            if(res.data.inventario) {
+                setInventory(res.data.inventario);
+            } else {
+                // Solo si el backend no devolviera datos, llamamos a fetchData
+                await fetchData(); 
+            }
+
+            setStockTallaId(''); 
+            setStockColorId(''); 
+            setStockCantidad(1);
+            
         } catch (err) {
-            setError("Error al agregar stock. La combinación de talla y color ya podría existir.");
+            console.error(err);
+            // CORRECCIÓN: Mostrar el error real del servidor en lugar de un mensaje fijo
+            const errorMsg = err.response?.data?.msg || err.response?.data?.error || "Error al agregar stock.";
+            setError(errorMsg);
         }
     };
 

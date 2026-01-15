@@ -101,7 +101,7 @@ const NewProduct = () => {
         }
     };
 
-    const handleAddInventory = async (e) => {
+const handleAddInventory = async (e) => {
         e.preventDefault();
         setMessage('');
         setError('');
@@ -111,23 +111,35 @@ const NewProduct = () => {
             return;
         }
         try {
-            await addInventory({
+            const res = await addInventory({
                 producto_id: createdId,
                 talla_id: parseInt(invTallaId),
                 color_id: parseInt(invColorId),
                 cantidad: parseInt(invCantidad),
                 id_usuario: user.id
             });
+            
             setMessage("Stock agregado correctamente.");
+            
+            // ACTUALIZACIÓN DIRECTA DEL ESTADO CON LOS DATOS DEL BACKEND
+            if (res.data.inventario) {
+                setInventory(res.data.inventario);
+            } else {
+                // Fallback por si acaso
+                await refreshImagesAndInventory();
+            }
+
             setInvTallaId('');
             setInvColorId('');
             setInvCantidad(1);
-            await refreshImagesAndInventory();
+            
         } catch (err) {
+            console.error(err);
             if (err.response?.status === 409 || err.response?.data?.includes("ya podría existir")) {
-                setMessage("Stock actualizado correctamente (ya existía talla y color).");
+                setMessage("Stock actualizado correctamente.");
             } else {
-                setError("Error al agregar inventario");
+                // Mostrar el mensaje real del error
+                setError(err.response?.data?.msg || "Error al agregar inventario");
             }
         }
     };
